@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<script src="js/three.min.js"></script>
+		<script src="js/OrbitControls.js"></script>
+		<script src="js/sea3d.min.js"></script>
+		<script src="js/stats.min.js"></script>
+		<script type="text/javascript" src="js/dat.gui.js"></script>
+		<style>
+			body {
+				font-family: Monospace;
+				color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<script>
+			var container, stats, camera, controls, scene, renderer, clock, pool, pointLight;
+
+			//灯光
+			function createLight() {
+				pointLight = new THREE.SpotLight(0xFFFFFF);
+				pointLight.position.set(0, 200, 200);
+				pointLight.castShadow = true;
+				pointLight.intensity = 1;
+				pointLight.target = head;
+				pointLight.shadowMapHeight = 2048;
+				pointLight.shadowMapWidth = 2048;
+				scene.add(pointLight);
+			}
+
+			function init() {
+				clock = new THREE.Clock();
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.01, 2000 );
+				camera.position.x = 200;
+				camera.position.z = 200;
+				camera.position.y = 200;
+
+				controls = new THREE.OrbitControls( camera );
+				scene = new THREE.Scene();
+				scene.add( camera );
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+                renderer.setClearColorHex(0xEEEEEE);
+				renderer.shadowMapEnabled = true;
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				// 使用SEA3D格式
+				pool = new SEA3D.Pool();
+				pool.load( ['sea3d/dirn.sea'], initObject );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+			}
+
+			var body, head;
+			var bodyBones = {};
+			var headBones = {};
+
+			function initObject() {
+
+				var size = 0.5;
+
+				console.log(pool.getList());
+				head = pool.getMesh('dirn_Box8222373');
+                head.castShadow = true;
+				head.receiveShadow = true;
+				head.position.x = 0;
+				head.position.y = 0;
+				head.position.z = 0;
+	
+				head.scale.set(-0.1,0.1,0.1);
+
+				scene.add(head);
+				camera.lookAt(head.position);
+                createLight(scene);
+			}
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+
+			function animate() {
+				requestAnimationFrame( animate );
+
+				var delta = clock.getDelta();
+				THREE.AnimationHandler.update( delta );
+
+				controls.update();
+
+				if(pointLight){
+					pointLight.position.set(cd.lightPositionX, cd.lightPositionY, cd.lightPositionZ);
+				}
+
+				renderer.render( scene, camera );
+				stats.update();
+			}
+
+			var cd = new function() {
+				this.lightPositionX = 0;
+				this.lightPositionY = 200;
+				this.lightPositionZ = 200;
+			}
+
+			//控制器
+			var gui = new dat.GUI();
+			var cameraPosition = gui.addFolder('lightPosition');
+			cameraPosition.add(cd, 'lightPositionX', -1000,1000);
+			cameraPosition.add(cd, 'lightPositionY', -1000,1000);
+			cameraPosition.add(cd, 'lightPositionZ', -1000,1000);
+
+			init();
+			animate();
+		</script>
+	</body>
+</html>
