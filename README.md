@@ -6,3 +6,5 @@ http://sea3d.poonya.com
 
 
 可以简单做到一个家具的展示,用的threejs的知识比较基础
+
+[运行DEMO](http://www.luoyongjie.cn/mygit/webgl-threejs)
